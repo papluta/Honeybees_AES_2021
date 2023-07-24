@@ -4,12 +4,12 @@ library(tidyverse)
 
 
 ### bee data
-load('data_allmonths.RData')
+load('Data/data_allmonths.RData')
 
 data.cut <- data.merged %>% filter(round %in% c(3,4))
 
 ### parasite data
-par <- read.csv('HBULK.csv')
+par <- read.csv('Data/HBULK.csv')
 
 data.p <- data.cut  %>% inner_join(par, by = c('month' = 'date', 'sample' = 'sample', 'site' = 'site'))
 
@@ -24,7 +24,7 @@ data.july <- data.p %>% filter(month == 'July') %>%
   mutate(Varroa.p.s = scale(Varroa.p)) %>% rename(Site = site)
 
 ### landuse
-load('radii.RData')
+load('Data/radii.RData')
 radii2 <- data.frame(Site = radii[['r500']]$Site, Ann.fl500 = radii[['r500']]$Ann.fl, OSR500 = radii[['r500']]$OSR, 
                    SNH750 = radii[['r750']]$SNH, Org.farm2000 = radii[['r2000']]$Org.farm)
 
