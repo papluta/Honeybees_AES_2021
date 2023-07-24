@@ -4,7 +4,7 @@ library(ggplot2)
 library(tidyr)
 
 # list of radii in 250 m increments
-load('Radii_raw.RData')
+load('Data/Radii_raw.RData')
 
 # calculating the 4 landscape variables for each radius
 land_fun <- function(x){ x %>% 
@@ -19,8 +19,8 @@ radii <- radii.raw %>% lapply(land_fun)
 #save(radii, file = 'radii.RData')
 
 # loading the abs. number of bees
-par <- read_csv('data_hb2021.csv')
-par <- par %>% dplyr::select(site, no_bees) %>% rename(Site = site)
+load('Data/Data_final.RData')
+par <- data.final.august %>% dplyr::select(Site, no_bees)
 
 # putting all radii of each variable together
 
