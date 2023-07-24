@@ -20,21 +20,19 @@ data.final.august <- data.final.august %>% left_join(fl.cv[1:2], by = c('Site' =
 ###################################
 
 
-# trying to fit parasite richness (p_rich2) to different distributions
-#prich.M <- glmer(cbind(p_rich2, 11-p_rich2) ~ Z.Varroa + Z.Org_crop2000 + (1|Site), family = 'binomial', data) ### doesn't work well, assumes all paraSites have equal probability of being contracted - not true
-#prich.M <- glmer(p_rich2 ~ Z.Varroa + Z.Org_crop2000 + (1|Site), family = 'poisson', data) ### not good either - very underdispersed
-#prich.M <- glmer(p_rich2 ~ Z.Varroa + Z.Org_crop2000 + (1|Site), family = 'nbinom1', data) ### not good either - very underdispersed
-#data$p_rich2_r <- data$p_rich2/11
+# trying to fit parasite richness (p_rich) to different distributions
+#prich.M <- glmer(cbind(p_rich, 11-p_rich2) ~ Varroa.p.s + Org.farm.p.s + (1|Site), family = 'binomial', data.final.august) ### doesn't work well, assumes all paraSites have equal probability of being contracted - not true
+#prich.M <- glmer(p_rich ~ Varroa.p.s + Org.farm.p.s + (1|Site), family = 'poisson', data.final.august) ### not good either - very underdispersed
+#prich.M <- glmer(p_rich ~ Varroa.p.s + Org.farm.p.s + (1|Site), family = 'nbinom1', data.final.august) ### not good either - very underdispersed
 #library(glmmTMB)
-#data$p_rich2_P <- data$p_rich2/11
-#prich.M <- glmmTMB(p_rich2_r ~ Z.Varroa + Z.Org_crop2000 + (1|Site), family = beta_family(), data) ### works well but cannot be used in piecewiseSEM
+#data$p_rich_r <- data$p_rich/11
+#prich.M <- glmmTMB(p_rich_r ~ Varroa.p.s + Org.farm.p.s + (1|Site), family = beta_family(), data) ### works well but cannot be used in piecewiseSEM
 
 
 #using logarithm of parasite richness
 
 
-prich.M<- lmer(log(p_rich+1) ~ Varroa.p.s + Org.farm.p.s + Ann.fl.p.s + SNH.p.s + OSR.p.s + (1|Site), REML=F, data = data.final.august)
-prich.M <- update(prich.M, . ~ . + m.cover.p.s)
+prich.M<- lmer(log(p_rich+1) ~ Varroa.p.s + (↕ + Ann.fl.p.s + SNH.p.s + OSR.p.s)^2 + (1|Site), REML=F, data = data.final.august)
 
 # model selection
 b<-dredge(prich.M, m.lim = c(0, 5), rank="AICc") 
@@ -42,7 +40,6 @@ subset(b, delta < 2)
 
 # best model
 prich.M<- lmer(log(p_rich+1) ~ Varroa.p.s + Org.farm.p.s + (1|Site), REML=T, data = data.final.august)
-prich.M <- update(prich.M, . ~ . + m.cover.p.s)
 
 # checking if the results hold w/o the influential point (Nor918V1)
 data.out <- data.final.august %>% filter(sample != 'Nor918V1') 
@@ -62,16 +59,15 @@ r.squaredGLMM(prich.M)
 #######################
 
 #trying to fit Varroa
-#data$Varroa_L <- log(data$Varroa_p)
-#var.M <- lmer(Varroa_L ~ Z.SNH750 + Z.Annual_fl500 + (1|Site), REML=T, data) ### works alright, but recommended only as a last resort
-#var.M <- glmer(Varroa_p ~ Z.SNH750 + Z.Annual_fl500 + (1|Site), family = Gamma(link='log'), data) #same result as logarithm, but a bit underdispersed (though not significantly)
-#var.M <- glmmTMB(Varroa_p ~ Z.SNH750 + Z.Annual_fl500 + (1|Site), family = Gamma(link='log'), REML=T, data) #same result, better dispersion but cannot be used in piecewiseSEM
-#var.M <- glmer(varroa_board ~  Z.Annual_fl500 + Z.SNH750 + (1|Site), family = 'poisson', weights=no_bees, data) #poisson with weights as no_bees (each bee had an equal prob. of aquiring a varroa mite)
+#data$Varroa_L <- log(data$Varroa.p)
+#var.M <- lmer(Varroa_L ~ SNH.p.s + Ann.fl.p.s + (1|Site), REML=T, data.final.august) ### works alright, but recommended only as a last resort
+#var.M <- glmer(Varroa.p ~ SNH.p.s + Ann.fl.p.s + (1|Site), family = Gamma(link='log'), data.final.august) #same result as logarithm, but a bit underdispersed (though not significantly)
+#var.M <- glmmTMB(Varroa.p ~ SNH.p.s + Ann.fl.p.s + (1|Site), family = Gamma(link='log'), REML=T, data.final.august) #same result, better dispersion but cannot be used in piecewiseSEM
+#var.M <- glmer(varroa_board ~  Ann.fl.p.s + SNH.p.s + (1|Site), family = 'poisson', weights=no_bees, data.final.august) #poisson with weights as no_bees (each bee had an equal prob. of aquiring a varroa mite)
 
 
-var.M <- glmer(Varroa.p ~ Org.farm.p.s + Ann.fl.p.s + SNH.p.s + OSR.p.s + (1|Site), family = Gamma(link='log'), data.final.august)
+var.M <- glmer(Varroa.p ~ (Org.farm.p.s + Ann.fl.p.s + SNH.p.s + OSR.p.s)^2 + (1|Site), family = Gamma(link='log'), data.final.august)
 vif(var.M)
-var.M <- update(var.M, . ~ . + m.cover.p.s)
 # model selection
 b<-dredge(var.M, m.lim = c(0, 4), rank="AICc") 
 subset(b, delta < 2)
@@ -92,8 +88,7 @@ r.squaredGLMM(var.M)
 ### 3. COLONY GROWTH MODEL ###
 ##############################
 
-col.M <- glmer.nb(no_bees ~ log(p_rich) + Varroa.p.s + Org.farm.p.s + Ann.fl.p.s + SNH.p.s + OSR.p.s + (1|Site), family='nbinom2', data.final.august) 
-col.M <- update(col.M, . ~ . + m.cover.p.s)
+col.M <- glmer.nb(no_bees ~ log(p_rich) + Varroa.p.s + (Org.farm.p.s + Ann.fl.p.s + SNH.p.s + OSR.p.s)^2 + (1|Site), family='nbinom2', data.final.august) 
 
 # model selection
 b<-dredge(col.M, m.lim = c(0, 3), rank="AICc") 
@@ -101,7 +96,6 @@ subset(b, delta < 2)
 
 # best model 
 col.M <- glmer.nb(no_bees ~ log(p_rich) + Org.farm.p.s + (1|Site), family='nbinom2', data.final.august) # second best because of residuals
-#col.M <- lmer(no_bees ~ Z.Org_crop2000 + SNH750 + L.p_rich2 + (1|Site), data)  - normal distribution a bit less underdispersed but the same result
 
 vif(col.M)
 summary(col.M)
@@ -169,7 +163,7 @@ r.squaredGLMM(surv.M)
 
 
 ###############
-### 5. SEM  ### should do unstandardized? what about range standarization to compare only AEM (but the have indirect effects, which is difficult to compare)
+### 5. SEM  ### 
 ###############
 
 library(piecewiseSEM)
@@ -178,7 +172,6 @@ library(piecewiseSEM)
 m1 <- glmer(Varroa.p ~ Ann.fl.p.s + SNH.p.s + (1|Site), family = Gamma(link='log'), data.final.august) 
 m2 <- lmer(log(p_rich) ~ Varroa.p + Org.farm.p.s + (1|Site), data.final.august) 
 m3 <- glmer.nb(no_bees ~ log(p_rich) + SNH.p.s + Org.farm.p.s + (1|Site), family='nbinom2', data.final.august) 
-m2 <- update(m2, . ~ . + m.cover.p.s)
 
 sem <- psem(m1, m2, m3)
 
@@ -193,12 +186,12 @@ plot(sem) #not working with missing std. estimates
 
 
 ## m1
-R2 <- cor(data$Varroa_p, predict(m1, type = "response"))^2 # non-linear predictions
+R2 <- cor(data.final.august$Varroa.p, predict(m1, type = "response"))^2 # non-linear predictions
 
 sd.yhat <- sqrt(var(predict(m1, type = "link"))/R2)
 
-summary(m1)$coefficients[2, 1] * sd(data$Z.Annual_fl500)/sd.yhat #-0.35
-summary(m1)$coefficients[3, 1] * sd(data$Z.SNH750)/sd.yhat #0.27
+summary(m1)$coefficients[2, 1] * sd(data.final.august$Ann.fl.p.s)/sd.yhat #-0.35
+summary(m1)$coefficients[3, 1] * sd(data.final.august$SNH.p.s)/sd.yhat #0.27
 
 
 
@@ -208,9 +201,9 @@ R2 <- cor(data$no_bees, predict(m3, type = "response"))^2 # non-linear predictio
 
 sd.yhat <- sqrt(var(predict(m3, type = "link"))/R2)
 
-summary(m3)$coefficients[4, 1] * sd(data$Z.Org_crop2000)/sd.yhat 
-summary(m3)$coefficients[3, 1] * sd(data$Z.SNH750)/sd.yhat 
-summary(m3)$coefficients[2, 1] * sd(data$L.p_rich2)/sd.yhat 
+summary(m3)$coefficients[4, 1] * sd(data.final.august$Org.farm.p.s)/sd.yhat 
+summary(m3)$coefficients[3, 1] * sd(data.final.august$SNH.p.s)/sd.yhat 
+summary(m3)$coefficients[2, 1] * sd(data.final.august$log(p_rich))/sd.yhat 
 
 
 ######### total effects in SEM ##########
@@ -309,7 +302,7 @@ r.squaredGLMM(tryp.M)
 
 
 library(spdep)
-coord <- read.csv("coordinates.csv")
+coord <- read.csv("Data/coordinates.csv")
 coord <- coord %>% distinct()
 
 # paraSite  richness
