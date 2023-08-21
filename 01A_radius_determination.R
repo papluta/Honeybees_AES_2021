@@ -37,19 +37,19 @@ OSR <- radii %>% lapply(ungroup) %>% lapply(function(x) x %>% dplyr::select(OSR)
 
 par(mfrow=c(2,2))
 #Annual_fl
-plot(cor(AF[,c(1:7)], AF$no_bees, use="complete"), ylab = 'Annual flower')+
+plot(cor(AF[,c(1:7)], AF$no_bees, use="complete"), ylab = 'Annual flower', xlab = 'Radius 500-2000m')+
   abline(h=0)
 
 
 #Org_crop
-plot(cor(Org_crop[,c(1:7)], Org_crop$no_bees, use="complete"), ylab = 'Organic crop')+
+plot(cor(Org_crop[,c(1:7)], Org_crop$no_bees, use="complete"), ylab = 'Organic crop', xlab = 'Radius 500-2000m')+
   abline(h=0)
 
 #semi
-plot(cor(SNH[,c(1:7)], SNH$no_bees, use="complete"), ylab = 'SNH')+
+plot(cor(SNH[,c(1:7)], SNH$no_bees, use="complete"), ylab = 'SNH', xlab = 'Radius 500-2000m')+
   abline(h=0)
 
 #OSR
-plot(cor(OSR[,c(1:7)], OSR$no_bees, use="complete"), ylab = 'OSR')+
+plot(cor(OSR[,c(1:7)], OSR$no_bees, use="complete"), ylab = 'OSR', xlab = 'Radius 500-2000m')+
   abline(h=0)
 
