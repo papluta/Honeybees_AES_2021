@@ -9,9 +9,9 @@ library(effects)
 options(na.action='na.fail')
 
 
-load(file = 'Data_final.RData')
+load(file = 'Data/Data_final.RData')
 data.final.august$Site <- as.factor(data.final.august$Site)
-load(file = 'Flower_cover.RData')
+load(file = 'Data/Flower_cover.RData')
 data.final.august <- data.final.august %>% left_join(fl.cv[1:2], by = c('Site' = 'Site')) %>% mutate(m.cover.p.s = scale(m.cover.p)[,1])
 
 
